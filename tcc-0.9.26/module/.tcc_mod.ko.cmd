@@ -1,0 +1,1 @@
+cmd_/441/pdinda/tcc/tcc-0.9.26/module/tcc_mod.ko := ld -r -m elf_x86_64 -T /usr/src/kernels/2.6.38.6-26.rc1.fc15.x86_64/scripts/module-common.lds --build-id  -o /441/pdinda/tcc/tcc-0.9.26/module/tcc_mod.ko /441/pdinda/tcc/tcc-0.9.26/module/tcc_mod.o /441/pdinda/tcc/tcc-0.9.26/module/tcc_mod.mod.o
