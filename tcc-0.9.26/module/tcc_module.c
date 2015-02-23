@@ -72,6 +72,23 @@ static int __init tcc_module_init(void)
 
     printk("Starting tcc_get_symbol\n");
     /* get entry symbol */
+
+    Section *hs = s->hash;
+    if (!hs) {
+        printk("Cannot find the hash table\n");
+        return 0;
+    }
+    ElfW(Sym) *sym;
+    h = elf_hash("fib") % nbuckets;
+    sym_index = ((int*)hs->data[2+h]);
+    nbuckets = ((int*)hs->data)[0];
+    while(sym_index != 0) {
+        sym = &((ElfW(Sym) *)s->data)[sym_index];
+        name1 = s->link->data + sym->st_name;
+        printk("Symbol: %s", name1);
+        sym_index = ((int*)hs->data)[2 + nbuckets + sym_index];
+    }
+    
     func = tcc_get_symbol(s, "fib");
     if (!func) {
       printk("Cannot find program...\n");
