@@ -79,6 +79,34 @@ ST_FUNC void asm_global_instr(void)
 
 /********************************************************/
 
+/********************************************************/
+#ifndef __KERNEL__
+LIBTCCAPI void tcc_display_state(TCCState * state, const char * name)
+{
+    Section *s = state->symtab;
+    ElfW(Sym) * sym;
+    Section *hs;
+    int nbuckets, sym_index, h;
+    const char * name1;
+
+    hs = s->hash;
+    if(!hs) {
+        printk("No hash table available\n");
+    } else {
+        nbuckets = ((int*)hs->data)[0];
+        h = elf_hash(name) % nbuckets;
+        sym_index = ((int*)hs->data)[2+h];
+        while(sym_index != 0) {
+            sym = &((ElfW(Sym) *)s->data)[sym_index];
+            name1 = s->link->data + sym->st_name;
+            printk("Symbol %s\n", name1);
+            sym_index = ((int *)hs->data)[2 + nbuckets + sym_index];
+        }
+        printk("Done printing symbol table!\n");
+    }
+}
+#endif
+
 #ifdef _WIN32
 static char *normalize_slashes(char *path)
 {
