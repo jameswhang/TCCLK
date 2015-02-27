@@ -13,11 +13,6 @@ struct TCCState;
 
 typedef struct TCCState TCCState;
 
-/****************************/
-/* Kernel Debug */
-#ifdef __KERNEL__
-LIBTCCAPI void tcc_display_state(TCCState * s, const char * name);
-
 /* create a new TCC compilation context */
 LIBTCCAPI TCCState *tcc_new(void);
 

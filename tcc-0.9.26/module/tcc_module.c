@@ -2,9 +2,9 @@
 #include <linux/kernel.h>    // included for KERN_INFO
 #include <linux/init.h>      // included for __init and __exit macros
 #include <linux/slab.h>
+#include <linux/vmalloc.h>
 
 #include "../libtcc.h"
-
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Northwestern University");
@@ -70,28 +70,34 @@ static int __init tcc_module_init(void)
       return 0;
     }
 
-    printk("Printing symbol table of s\n");
-    display_tccstate(s, "fib");
-
     printk("Starting tcc_get_symbol\n");
     /* get entry symbol */
-
-
     func = tcc_get_symbol(s, "fib");
     if (!func) {
       printk("Cannot find program...\n");
       return 0;
     }
 
+/*
+    printk("Turning off the NX protection bit\n");
+    int pagesize = sysconf(_SC_PAGE_SIZE);
+    if(mprotect(func, pagesize, PROT_EXEC) < 0) {
+      printk("Cannot turn off the NX protection bit\n");
+      return 0;
+    } 
+*/
+
     printk("Calling the code!\n");
 
     /* run the code */
-    func(32);
+    int result = func(10);
+
+    printk("Result is :%d\n", result);
 
     printk("Deleting state\n");
 
     /* delete the state */
-    tcc_delete(s);
+    //tcc_delete(s);
 
 
     return 0;    // Non-zero return means that the module couldn't be loaded.
@@ -104,14 +110,13 @@ static void __exit tcc_module_deinit(void)
 
 void * tcc_kmalloc(size_t n)
 {
-  return kmalloc(n,GFP_ATOMIC);
+  return __vmalloc(n, GFP_ATOMIC, PAGE_KERNEL_EXEC);
 }
 
 void * tcc_krealloc(void *p, size_t n)
 {
-  return krealloc(p,n,GFP_ATOMIC);
+  return krealloc(p, n, GFP_ATOMIC);
 }
-
 
 module_init(tcc_module_init);
 module_exit(tcc_module_deinit);
