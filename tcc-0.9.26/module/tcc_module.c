@@ -12,12 +12,18 @@ MODULE_DESCRIPTION("TCC_Module");
 
 
 static char my_program[] =
+"int g = 3;\n"
 "int fib(int n)\n"
 "{\n"
 "    if (n <= 2)\n"
 "        return 1;\n"
 "    else\n"
 "        return fib(n-1) + fib(n-2);\n"
+"}\n"
+
+"int doFibAndAddG(int n)\n"
+"{\n"
+"  return fib(n) + g;\n"
 "}\n"
 ;
 
@@ -28,6 +34,7 @@ static int __init tcc_module_init(void)
 
     TCCState *s;
     int (*func)(int);
+    int (*func2)(int);
 
     printk("Starting tcc_new\n");
 
@@ -74,10 +81,15 @@ static int __init tcc_module_init(void)
     /* get entry symbol */
     func = tcc_get_symbol(s, "fib");
     if (!func) {
-      printk("Cannot find program...\n");
+      printk("Cannot find fib...\n");
       return 0;
     }
 
+    func2 = tcc_get_symbol(s, "doFibAndAddG");
+    if (!func2) {
+      printk("Cannot find doFib...\n");
+      return 0;
+    }
 /*
     printk("Turning off the NX protection bit\n");
     int pagesize = sysconf(_SC_PAGE_SIZE);
@@ -91,8 +103,10 @@ static int __init tcc_module_init(void)
 
     /* run the code */
     int result = func(10);
+    int result2 = func2(11);
 
     printk("Result is :%d\n", result);
+    printk("Another result is %d\n", result2);
 
     printk("Deleting state\n");
 
