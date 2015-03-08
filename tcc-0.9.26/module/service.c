@@ -42,17 +42,20 @@ void print_error_and_quit(char mode)
 }
 
 // read_from_file
-int read_from_file(int fd, char * buffer)
+int read_from_file(FILE * fd, char * buffer)
 {
-    while(fscanf(fd, )) {
-        
-    }
+    if(fgets(buffer, fd, 1000) != NULL) 
+        return 1;
+    else
+        return 0;
 }
 
 // main
 int main(int argc, char * argv[])
 {
     int dev_fd;
+    FILE * input_fd;
+    FILE * output_fd;
     char * user_program;
     
     // Open the tcc device
@@ -67,20 +70,39 @@ int main(int argc, char * argv[])
     } else if (argc == 2 && strcmp(argv[1], "-h") == 0) {
         print_flags(); // print help page
     } else if (argc == 3) {
-        char mode = argv[1][1];
-        switch(mode)
+        char input_mode = argv[1][1];
+        char output_mode = argv[3][1];
+        switch(input_mode)
         {
-            case 'f':
+            case 'f': // read input from file
                 {
-                    int file_fd = open(argv[2]);
-                    if (fd < 0) 
+                    input_fd = fopen(argv[2], "r");
+                    if (input_fd < 0) 
                         print_error_and_quit('f');
                     else {
-                        read_from_file(file_fd, user_program);
-                        /// TODO: make file handler
+                        if (read_from_file(input_fd, user_program)) {
+                            write(fd, user_program, sizeof(user_program));
+                        } else {
+                            print_error_and_quit('f');
+                        }
                     }
                 }
+            case 'u': // read input directly from user
+                {
+                    printf("Your code below:\n");
+                    scanf("%s", user_program);
+                    write(fd, user_program, sizeof(user_program));
+                }
         }
+        fclose(input_fd);
+        read(fd, output_buffer, sizeof(output_buffer));
+        if (output_mode == 'o') { // output to a file
+            output_fd = fopen(argv[4], "w");
+            fputs(output_buffer, output_fd);
+        } else {
+            printf("%s", output_buffer);
+        }
+        fclose(output_fd);
     }
     return 0;
 }
