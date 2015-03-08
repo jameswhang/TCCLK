@@ -71,7 +71,12 @@ struct file_operations fops =
 };
 
 struct cdev *kernel_cdev;
-static char * user_program[];
+static char user_program[] = 
+"int same(int x) {\n"
+"return x;\n"
+"}\n"
+;
+
 static int __init tcc_module_init(void)
 {
     printk(KERN_INFO "TCC Module Inited\n");
@@ -106,7 +111,7 @@ static int __init tcc_module_init(void)
 
     printk("Starting tcc_get_symbol\n");
     /* get entry symbol */
-    func = tcc_get_symbol(s, "main");
+    func = tcc_get_symbol(s, "same");
     if (!func) {
       printk("Cannot find main...\n");
       return 0;
@@ -121,7 +126,7 @@ static int __init tcc_module_init(void)
 
     printk("Deleting state\n");
 
-    tcc_delete(s);
+    //tcc_delete(s);
     //compilation test complete
     //initialize device now
     int ret;
