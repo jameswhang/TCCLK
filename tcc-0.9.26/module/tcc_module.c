@@ -3,19 +3,74 @@
 #include <linux/init.h>      // included for __init and __exit macros
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
+#include <linux/semaphore.h>
+#include <linux/cdev.h>
 
 #include <asm/uaccess.h>
 #include <linux/cdev.h>
 
 #include "../libtcc.h"
 
+#define MAX 200
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Northwestern University");
 MODULE_DESCRIPTION("TCC_Module");
 
 static int Major;
-dev_t tcc_dev;
+dev_t dev_no,tcc_dev;
+struct device
+{
+	char user_program[200];
+	struct semaphore sem;
+} tcc_char_dev;
 
+int open(struct inode *inode, struct file *filp)
+{
+	printk(KERN_INFO "Inside open \n");
+	if(down_interruptible(&tcc_char_dev.sem)) {
+		printk(KERN_INFO "could not hold semaphore\n");
+		return -1;
+	}
+	return 0;
+}
+
+int release(struct inode *inode, struct file *filp)
+{
+	printk(KERN_INFO "Inside close\n");
+	printk(KERN_INFO "Releasing semaphore");
+	up(&tcc_char_dev.sem);
+	return 0;
+}
+
+ssize_t read (struct file *filp, char *buff, size_t count, loff_t *offp)
+{
+	unsigned long ret;
+	printk(KERN_INFO "Inside read\n");
+	ret = copy_to_user(buff, tcc_char_dev.user_program, count);
+	return ret;
+}
+
+ssize_t write (struct file filp, const char *buff, size_t count, loff_t *offp)
+{
+	unsigned long ret;
+	printk(KERN_INFO "Inside write\n");
+	if (count > MAX) count = MAX;
+	ret = copy_from_user(tcc_char_dev.user_program, buff, count);
+	return count;
+}
+
+struct file_operations fops = 
+{
+	read: read,
+	write: write,
+	open: open,
+	release: release
+};
+
+struct cdev *kernel_cdev;
 static char * user_program[];
 static int __init tcc_module_init(void)
 {
