@@ -13,7 +13,7 @@
 
 #include "../libtcc.h"
 
-#define MAX 200
+#define MAX 1000
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Northwestern University");
@@ -23,7 +23,7 @@ static int Major;
 dev_t dev_no,tcc_dev;
 struct device
 {
-	char user_program[200];
+	char user_program[1000];
 	struct semaphore sem;
 } tcc_char_dev;
 
@@ -122,12 +122,35 @@ static int __init tcc_module_init(void)
     printk("Deleting state\n");
 
     tcc_delete(s);
+    //compilation test complete
+    //initialize device now
+    int ret;
+    kernel_cdev = cdev_alloc();
+    kernel_cdev->ops = &fops;
+    kernel_cdev->owner = THIS_MODULE;
+    ret = alloc_chrdev_region( &dev_no, 0, 1, "chr_arr_dev");
+    if (ret < 0) {
+	printk("Major number allocation is failed\n");
+	return ret;
+    }
+
+    Major = MAJOR(dev_no);
+    tcc_dev = MKDEV(Major,0);
+    sema_init(&tcc_char_dev.sem, 1);
+    printk("The major number for your device is %d\n", Major);
+    ret = cdev_add(kernel_cdev,tcc_dev,1);
+    if (ret < 0) {
+	printk ("Unable to allocate cdev\n");
+	return ret;
+    }
     return 0;    // Non-zero return means that the module couldn't be loaded.
 }
 
 static void __exit tcc_module_deinit(void)
 {
     printk(KERN_INFO "TCC Module Deinited\n");
+    cdev_del(kernel_cdev);
+    unregister_chrdev_region(Major,1);
 }
 
 void * tcc_kmalloc(size_t n)
