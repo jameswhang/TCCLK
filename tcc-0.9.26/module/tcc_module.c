@@ -13,8 +13,6 @@
 
 #include "../libtcc.h"
 
-#define MAX 1000
-
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Northwestern University");
 MODULE_DESCRIPTION("TCC_Module");
@@ -23,7 +21,8 @@ static int Major;
 dev_t dev_no,tcc_dev;
 struct device
 {
-	char user_program[1000];
+	char *user_program;
+	int prog_length;
 	struct semaphore sem;
 } tcc_char_dev;
 
@@ -53,13 +52,51 @@ ssize_t read (struct file *filp, char *buff, size_t count, loff_t *offp)
 	return ret;
 }
 
-ssize_t write (struct file filp, const char *buff, size_t count, loff_t *offp)
+ssize_t write (struct file *filp, const char *buff, size_t count, loff_t *offp)
 {
 	unsigned long ret;
 	printk(KERN_INFO "Inside write\n");
-	if (count > MAX) count = MAX;
+	tcc_char_dev.user_program = kmalloc(count, GFP_ATOMIC);
 	ret = copy_from_user(tcc_char_dev.user_program, buff, count);
+	tcc_char_dev.prog_length = count;
 	return count;
+}
+
+TCCState *globalState;
+
+int compile()
+{
+	globalState = tcc_new();
+	if (!globalState) {
+		printk("Could not create tcc state\n");
+		return -1;
+	}
+	tcc_set_output_type(globalState, TCC_OUTPUT_MEMORY);
+	if (tcc_compile_string(globalState, tcc_char_dev.user_program) == -1) {
+		printk("Cannot compile program!\n");
+		return -1;
+	}
+	return 0;
+}
+
+int execute()
+{
+	kfree(tcc_char_dev.user_program);
+	//tcc_delete(globalState);
+	return 0;
+}
+
+static long tcc_dev_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
+{
+	switch (ioctl) {
+	case 0:
+		return compile();
+	case 1:
+		return execute();
+	default:
+		printk("invalid ioctl flag\n");
+		return -1;	
+	}
 }
 
 struct file_operations fops = 
@@ -67,6 +104,8 @@ struct file_operations fops =
 	read: read,
 	write: write,
 	open: open,
+	unlocked_ioctl: tcc_dev_ioctl,
+	compat_ioctl: tcc_dev_ioctl,
 	release: release
 };
 
