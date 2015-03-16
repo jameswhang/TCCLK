@@ -104,6 +104,12 @@ int main(int argc, char * argv[])
     FILE * output_fd;
     char * user_program = malloc(max_buf_len);
     char * output_buffer = malloc(max_buf_len);
+
+    dev_fd = open("/dev/tcc_dev", O_RDWR);
+
+    if (dev_fd < 0) {
+        printf("Couldn't open the device\n");
+    }
     
     if (argc < 2) {
         wrong_usage();
@@ -128,12 +134,14 @@ int main(int argc, char * argv[])
 
         // TODO:
         // WRITE / READ FROM KERNEL MODULE 
+        write(dev_fd, user_program, sizeof(user_program));
+		
 
         int output_index = check_flags(argc, argv, 'o');
         if (output_index < 0) { // print directly to the console
             printf("%s\n", output_buffer);
         } else { // writes to an output file whose path is specified by user
-            output_fd = fopen(argv[ouput_index+1], "w");
+            output_fd = fopen(argv[output_index+1], "w");
             fputs(output_buffer, output_fd);
             fclose(output_fd);
         }

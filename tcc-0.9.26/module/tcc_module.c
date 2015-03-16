@@ -56,56 +56,56 @@ ssize_t write (struct file *filp, const char *buff, size_t count, loff_t *offp)
 {
 	unsigned long ret;
 	printk(KERN_INFO "Inside write\n");
+	/*
 	tcc_char_dev.user_program = kmalloc(count, GFP_ATOMIC);
 	ret = copy_from_user(tcc_char_dev.user_program, buff, count);
 	tcc_char_dev.prog_length = count;
-	return count;
+	*/
+
+	//void *(*func)(...); // function pointer
+	int (*func)();
+
+	TCCState *s;
+	//int (*main_func)(void); // main_func has to be in the form "int main()"
+	s = tcc_new();
+	if(!s) {
+		printk("Could not create tcc state\n");
+		return 0;
+	}
+
+	tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
+
+	printk("Starting tcc_compile_string\n");
+	if (tcc_compile_string(s, buff) == -1) {
+		printk("Could not compile program\n");
+		return 0;
+	}
+
+	printk("Starting tcc_relocate!\n");
+	if (tcc_relocate(s, TCC_RELOCATE_AUTO) < 0) {
+		printk("Could not relocate program\n");
+		return 0;
+	}
+	func = tcc_get_symbol(s, "main");
+	if(!func) {
+		printk("Could not find main...\n");
+		return 0;
+	}
+	int result = func();
+	printk("Result is %d\n", result);
+	printk("**** TCC : FINISHED EXECUTING *****\n");
+
+	// Free user program
+	//kfree(tcc_char_dev.user_program);
+	return 0;
 }
 
 TCCState *globalState;
-
-int compile()
-{
-	globalState = tcc_new();
-	if (!globalState) {
-		printk("Could not create tcc state\n");
-		return -1;
-	}
-	tcc_set_output_type(globalState, TCC_OUTPUT_MEMORY);
-	if (tcc_compile_string(globalState, tcc_char_dev.user_program) == -1) {
-		printk("Cannot compile program!\n");
-		return -1;
-	}
-	return 0;
-}
-
-int execute()
-{
-	kfree(tcc_char_dev.user_program);
-	//tcc_delete(globalState);
-	return 0;
-}
-
-static long tcc_dev_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
-{
-	switch (ioctl) {
-	case 0:
-		return compile();
-	case 1:
-		return execute();
-	default:
-		printk("invalid ioctl flag\n");
-		return -1;	
-	}
-}
-
 struct file_operations fops = 
 {
 	read: read,
 	write: write,
 	open: open,
-	unlocked_ioctl: tcc_dev_ioctl,
-	compat_ioctl: tcc_dev_ioctl,
 	release: release
 };
 
@@ -118,7 +118,9 @@ static char user_program[] =
 
 static int __init tcc_module_init(void)
 {
+    int ret;
     printk(KERN_INFO "TCC Module Inited\n");
+    /*
 
     TCCState *s;
     int (*func)(int);
@@ -132,7 +134,7 @@ static int __init tcc_module_init(void)
     }
 
     printk("Starting tcc_set_output_type\n");
-    /* MUST BE CALLED before any compilation */
+    // MUST BE CALLED before any compilation 
     tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
 
     printk("Starting tcc_compile_string\n");
@@ -142,14 +144,14 @@ static int __init tcc_module_init(void)
     }
     printk("Starting tcc_relocate\n");
 
-    /* relocate the code */
+    // relocate the code 
     if (tcc_relocate(s, TCC_RELOCATE_AUTO) < 0) {
       printk("Cannot relocate program\n");
       return 0;
     }
 
     printk("Starting tcc_get_symbol\n");
-    /* get entry symbol */
+    // get entry symbol 
     func = tcc_get_symbol(s, "same");
     if (!func) {
       printk("Cannot find main...\n");
@@ -158,17 +160,17 @@ static int __init tcc_module_init(void)
 
     printk("Calling the code!\n");
 
-    /* run the code */
+    // run the code 
     void * result = func(10);
 
     printk("Result is :%d\n", result);
 
     printk("Deleting state\n");
+    */
 
     //tcc_delete(s);
     //compilation test complete
     //initialize device now
-    int ret;
     kernel_cdev = cdev_alloc();
     kernel_cdev->ops = &fops;
     kernel_cdev->owner = THIS_MODULE;

@@ -1,4 +1,5 @@
 int printk(char *fmt, ...);
+void * __symbol_get(const char * symbol);
 
 #define printf(...) printk(__VA_ARGS__)
 #define fprintf(targ,...) printk(__VA_ARGS__)
@@ -37,7 +38,7 @@ void * memmove ( void * destination, const void * source, size_t num );
 
 
 
-void vfree(void *p);
+void kfree(void *p);
 void *tcc_kmalloc(size_t n);
 void *tcc_krealloc(void *p, size_t n);
 

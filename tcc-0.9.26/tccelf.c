@@ -451,6 +451,7 @@ ST_FUNC void relocate_syms(TCCState *s1, int do_resolve)
                     goto found;
                 }
             }
+
             /* XXX: _fp_hw seems to be part of the ABI, so we ignore
                it */
             if (!strcmp(name, "_fp_hw"))
@@ -461,6 +462,14 @@ ST_FUNC void relocate_syms(TCCState *s1, int do_resolve)
             if (sym_bind == STB_WEAK) {
                 sym->st_value = 0;
             } else {
+#ifdef __KERNEL__
+	        void * func;
+		func = __symbol_get(name);
+		if (func != NULL) {
+		    sym->st_value = (addr_t)func;
+		    goto found; 
+                }
+#endif
                 tcc_error_noabort("undefined symbol '%s'", name);
             }
         } else if (sh_num < SHN_LORESERVE) {
