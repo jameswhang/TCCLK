@@ -1,1 +1,0 @@
-cmd_/441/jwhang/eecs441/char_device/char_dev.ko := ld -r -m elf_x86_64 -T /usr/src/kernels/2.6.38.6-26.rc1.fc15.x86_64/scripts/module-common.lds --build-id  -o /441/jwhang/eecs441/char_device/char_dev.ko /441/jwhang/eecs441/char_device/char_dev.o /441/jwhang/eecs441/char_device/char_dev.mod.o
