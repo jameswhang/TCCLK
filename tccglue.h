@@ -38,7 +38,7 @@ void * memmove ( void * destination, const void * source, size_t num );
 
 
 
-void kfree(void *p);
+void vfree(void *p);
 void *tcc_kmalloc(size_t n);
 void *tcc_krealloc(void *p, size_t n);
 

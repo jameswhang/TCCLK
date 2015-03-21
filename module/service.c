@@ -8,17 +8,16 @@
 void print_flags()
 {
     printf("Flags:\n");
-    printf("\t-e\tExecute\n");
     printf("\t-f\tRead from file [file_path]\n");
-    printf("\t-o\tOutput result to file [file_path]\n");
+    printf("\t-u\tRead directly from stdin \n");
 }
 
 // wrong_usage:
 // prints off the correct usage and quits the program
 void wrong_usage()
 {
-    printf("Usage: tcc_kernel_run flags parameter\n");
-    printf("tcc_kernel_run -h for help\n");
+    printf("Usage: tcc_service flags parameter\n");
+    printf("tcc_service -h for help\n");
     exit(-1);
 }
 
@@ -26,7 +25,7 @@ void wrong_usage()
 // prints off the appropriate error message and quits
 void print_error_and_quit(char mode)
 {
-    printf("tcc_kernel_run : ");
+    printf("tcc_service : ");
     switch(mode)
     {
         case 'd':
@@ -46,7 +45,7 @@ void print_error_and_quit(char mode)
 // read_from_file
 int read_from_file(FILE * fd, char * buffer)
 {
-    fgets(buffer, fd, 1000);
+    fgets(buffer, 1000, fd);
     return 1;
 }
 
@@ -66,7 +65,8 @@ int check_flags(int argc, char * argv[], char target_flag) {
 // dynamically reallocs the buffer if user puts in more than 1000 characters long code
 char * get_user_code_input(char * buf, int maxlen) {
     int c = EOF;
-    unsigned int i = 0;
+    unsigned int i = 14;
+    strcpy(buf, "int main() {\n");
     while ((c = getchar()) != EOF) {
         buf[i++] = (char)c;
         if (i == maxlen) {
@@ -75,6 +75,7 @@ char * get_user_code_input(char * buf, int maxlen) {
         }
     }
     buf[i] = '\0';
+    strcpy(buf+i+1, "return 0;\n}\n");
     return buf;
 }
 
@@ -103,12 +104,12 @@ int main(int argc, char * argv[])
     FILE * input_fd;
     FILE * output_fd;
     char * user_program = malloc(max_buf_len);
-    char * output_buffer = malloc(max_buf_len);
 
     dev_fd = open("/dev/tcc_dev", O_RDWR);
 
     if (dev_fd < 0) {
         printf("Couldn't open the device\n");
+        exit(-1);
     }
     
     if (argc < 2) {
@@ -117,34 +118,27 @@ int main(int argc, char * argv[])
         print_flags(); // print help page
         return 0;
     } else {
-        int file_index = check_flags(argc, argv, 'f');
-        if (file_index < 0) { // read input directly from user
+        int file_index = check_flags(argc, argv, 'u');
+        if (file_index > 0) { // read input directly from user
             printf("Type your code below:\n");
             user_program = get_user_code_input(user_program, max_buf_len);
-            //write(dev_fd, user_program, sizeof(user_program));
-        } else { // read input from file
-            input_fd = fopen(argv[file_index+1], "r");
-            if (input_fd < 0) {
-                print_error_and_quit('f');
-            } else {
-                user_program = get_user_code_file(user_program, input_fd, max_buf_len);
-                fclose(input_fd);
-            }
-        }
-
-        // TODO:
-        // WRITE / READ FROM KERNEL MODULE 
+        } else {
+	    file_index = check_flags(argc, argv, 'f'); 
+            if (file_index > 0) { // read input from file
+                input_fd = fopen(argv[file_index+1], "r");
+                if (input_fd < 0) {
+                    print_error_and_quit('f');
+                } else {
+                    user_program = get_user_code_file(user_program, input_fd, max_buf_len);
+                    fclose(input_fd);
+                }
+            } else { 
+	        wrong_usage();
+	    }
+	}
+	// Write to the device
+	// This does the compilation and execution at the same time
         write(dev_fd, user_program, sizeof(user_program));
-		
-
-        int output_index = check_flags(argc, argv, 'o');
-        if (output_index < 0) { // print directly to the console
-            printf("%s\n", output_buffer);
-        } else { // writes to an output file whose path is specified by user
-            output_fd = fopen(argv[output_index+1], "w");
-            fputs(output_buffer, output_fd);
-            fclose(output_fd);
-        }
     }
     return 0;
 }
