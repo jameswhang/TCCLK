@@ -10,9 +10,10 @@ Value:
 	- Implement TCCLK memory allocator [3]
 - Codebase
 	- Variable name Consistency (tcc_dev, tcc_mod, tcc_module) -> make into one [2]
+	- Get rid of the unnecessary Windows crap [2]
 - Usage:
 	- Automatic device node creation [2]
-	- Get rid of the "write mprotect()"
+	- Get rid of the "write mprotect() kind of stub stuff" [1]
 
 ###########################################
 
