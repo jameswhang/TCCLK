@@ -1,0 +1,23 @@
+TODO LIST
+Value:
+3 - Critical
+2 - Important
+1 - Trivial
+
+###########################################
+
+- Functionality 
+	- Implement TCCLK memory allocator [3]
+- Codebase
+	- Variable name Consistency (tcc_dev, tcc_mod, tcc_module) -> make into one [2]
+- Usage:
+	- Automatic device node creation [2]
+	- Get rid of the "write mprotect()"
+
+###########################################
+
+Suggestions:
+
+# pdinda 4/5/2015
+
+- Even better would be to identify what specific allocations in tcc need to be executable, and allocate them using a specific vmalloc wrapper, do the rest with kmalloc.   The problem with vmalloc is that it's really going to make allocation be page size, even when you only need subpage sizes. 
