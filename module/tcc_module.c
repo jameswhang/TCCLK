@@ -19,6 +19,8 @@ MODULE_DESCRIPTION("TCC_Module");
 
 static int Major;
 dev_t dev_no,tcc_dev;
+struct cdev *kernel_cdev;
+
 struct device
 {
 	char *user_program;
@@ -56,19 +58,13 @@ ssize_t write (struct file *filp, const char *buff, size_t count, loff_t *offp)
 {
 	unsigned long ret;
 	printk(KERN_INFO "Inside write\n");
-	/*
-	tcc_char_dev.user_program = kmalloc(count, GFP_ATOMIC);
-	ret = copy_from_user(tcc_char_dev.user_program, buff, count);
-	tcc_char_dev.prog_length = count;
-	*/
 
-	//void *(*func)(...); // function pointer
-	int (*func)();
+	int (*func)(); // main_func has to be in the form "int main()"
 
 	TCCState *s;
-	//int (*main_func)(void); // main_func has to be in the form "int main()"
 	s = tcc_new();
-	if(!s) {
+
+	if (!s) {
 		printk("Could not create tcc state\n");
 		return 0;
 	}
@@ -95,12 +91,11 @@ ssize_t write (struct file *filp, const char *buff, size_t count, loff_t *offp)
 	printk("Result is %d\n", result);
 	printk("**** TCC : FINISHED EXECUTING *****\n");
 
+    	//tcc_delete(s); // TODO: Do this after memory allocator is implemented
 	// Free user program
-	//kfree(tcc_char_dev.user_program);
 	return 0;
 }
 
-TCCState *globalState;
 struct file_operations fops = 
 {
 	read: read,
@@ -109,66 +104,12 @@ struct file_operations fops =
 	release: release
 };
 
-struct cdev *kernel_cdev;
-static char user_program[] = 
-"int same(int x) {\n"
-"return x;\n"
-"}\n"
-;
 
 static int __init tcc_module_init(void)
 {
     int ret;
     printk(KERN_INFO "TCC Module Inited\n");
-    /*
 
-    TCCState *s;
-    int (*func)(int);
-
-    printk("Starting tcc_new\n");
-
-    s = tcc_new();
-    if (!s) {
-        printk("Could not create tcc state\n");
-	return 0;
-    }
-
-    printk("Starting tcc_set_output_type\n");
-    // MUST BE CALLED before any compilation 
-    tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
-
-    printk("Starting tcc_compile_string\n");
-    if (tcc_compile_string(s, user_program) == -1) {
-      printk("Cannot compile program!\n");
-      return 0;
-    }
-    printk("Starting tcc_relocate\n");
-
-    // relocate the code 
-    if (tcc_relocate(s, TCC_RELOCATE_AUTO) < 0) {
-      printk("Cannot relocate program\n");
-      return 0;
-    }
-
-    printk("Starting tcc_get_symbol\n");
-    // get entry symbol 
-    func = tcc_get_symbol(s, "same");
-    if (!func) {
-      printk("Cannot find main...\n");
-      return 0;
-    }
-
-    printk("Calling the code!\n");
-
-    // run the code 
-    void * result = func(10);
-
-    printk("Result is :%d\n", result);
-
-    printk("Deleting state\n");
-    */
-
-    //tcc_delete(s);
     //compilation test complete
     //initialize device now
     kernel_cdev = cdev_alloc();
@@ -199,7 +140,7 @@ static void __exit tcc_module_deinit(void)
     unregister_chrdev_region(Major,1);
 }
 
-void * tcc_kmalloc(size_t n)
+void * tcc_kmalloc(size_t n) // TODO: MEMORY ALLOCATOR
 {
   return __vmalloc(n, GFP_ATOMIC, PAGE_KERNEL_EXEC);
 }
