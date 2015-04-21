@@ -26,3 +26,6 @@ tcc_service is a user-level program that serves as a linker to the TCC module in
 8. dmesg  will tell you the major number
 9. mknod /dev/tcc_dev c (major num) 0 
 10. ./service -f (source code filename)
+
+## Trello
+I have a Trello board to keep all the TODOs. Initially I kept this in the TODO file under module directory but that is now deprecated. Trello is awesome.
