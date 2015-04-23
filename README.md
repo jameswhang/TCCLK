@@ -27,5 +27,13 @@ tcc_service is a user-level program that serves as a linker to the TCC module in
 9. mknod /dev/tcc_dev c (major num) 0 
 10. ./service -f (source code filename)
 
+## Contributors
+<a href="http://jameswhang.github.io">James Whang</a>
+<a href="https://www.linkedin.com/pub/tai-won-chung/42/b85/81a">Tai Won Chung</a>
+<a href="http://www.pdinda.org">Peter Dinda</a>
+
 ## Trello
 I have a <a href="https://trello.com/b/PatvBplZ/tcclk">Trello board</a> to keep all the TODOs. Initially I kept this in the TODO file under module directory but that is now deprecated. Trello is awesome.
+
+## Contributing
+Feel free to send me an email / join us on Trello if you want to contribute!
