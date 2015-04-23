@@ -2,7 +2,7 @@
 #include <linux/kernel.h>    // included for KERN_INFO
 #include <linux/init.h>      // included for __init and __exit macros
 #include <linux/slab.h>
-#include <linux/vmalloc.h>
+//#include <linux/vmalloc.h>
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 #include <linux/semaphore.h>
@@ -12,6 +12,7 @@
 #include <linux/cdev.h>
 
 #include "../libtcc.h"
+#include "tcc_memory.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Northwestern University");
@@ -138,16 +139,6 @@ static void __exit tcc_module_deinit(void)
     printk(KERN_INFO "TCC Module Deinited\n");
     cdev_del(kernel_cdev);
     unregister_chrdev_region(Major,1);
-}
-
-void * tcc_kmalloc(size_t n) // TODO: MEMORY ALLOCATOR
-{
-  return __vmalloc(n, GFP_ATOMIC, PAGE_KERNEL_EXEC);
-}
-
-void * tcc_krealloc(void *p, size_t n)
-{
-  return krealloc(p, n, GFP_ATOMIC);
 }
 
 module_init(tcc_module_init);
