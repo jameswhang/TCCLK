@@ -1,7 +1,10 @@
-/* tcc_page.c
+/* tcc_page.c 
  * Logic for allocation of pages
+ * Author: James Whang
+ * Last Updated: 5/12/2015
  */
 
+#include <linux/vmalloc.h>
 #include "tcc_page.h"
 
 static tcc_page_stat_t tcc_page_stats = { 0, 0, 0, PAGESIZE };
@@ -13,7 +16,8 @@ tcc_page_t * get_page() {
     tcc_page_stats.num_requested++;
     tcc_page_stats.num_in_use++;
     
-    res = (tcc_page_t *) malloc(sizeof(tcc_page_t));
+    // allocate an executable page
+    res = (tcc_page_t *) __vmalloc(sizeof(tcc_page_t), GFP_ATOMIC, PAGE_KERNEL_EXEC);
     res->id = id++;
     res->size = tcc_page_stats.page_size;
     res->ptr = allocate_exec_page();
@@ -43,4 +47,3 @@ tcc_page_stat * page_stats()
   
   return memcpy(&stats, &kma_page_stats, sizeof(kma_page_stat_t));
 }
-
