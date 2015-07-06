@@ -44,15 +44,16 @@ void tcc_free(void *p)
         printk("TCC: ERROR WHEN FREEING POINTER AT ADDRESS %p\n", p);
         return;
     } else {
+        remove_size_pair(p, n); //remove from the pair list
         add_pair(p, n); // new pair of free memory
         coalesce(p, n); // coalesce the memory space
     }
 }
 
-void new_page(tcc_page_t* page)
+void new_page(tcc_page_t *page)
 {
     *((tcc_page_t **)page->ptr) = page;
-    tcc_page_info_t * pageinfo = (tcc_page_info_t*)(page->ptr);
+    tcc_page_info_t *pageinfo = (tcc_page_info_t*)(page->ptr);
     pageinfo->page_count = 0;
     pageinfo->buffer_count = 0;
     pageinfo->entry = (tcc_pair_t*)((long int)pageinfo + sizeof(tcc_page_info_t));
@@ -96,10 +97,20 @@ void add_size_pair(void *p, size_t size)
 
 // remove_size_pair
 // removes the size pair node from the list 
-void remove_size_pair(void *p, size_t size)
+int remove_size_pair(void *p, size_t size)
 {
+    tcc_ptr_size_pair_t *curr_ptr = g_ptr_list;
+    if (g_ptr_list == NULL ) { // something went wrong
+        return 0;
+    }
     if (g_ptr_list != NULL) {
-        
+        while (curr_ptr->next->ptr != p) {
+            curr_ptr = curr_ptr->next;
+        }
+        tcc_ptr_size_pair_t *next_ptr = curr_ptr->next;
+        curr_ptr->next = next_ptr->next;
+        kfree(next_ptr);
+        return 1;
     }
 }
 
@@ -166,7 +177,7 @@ void remove_pair(void * base)
 }
 
 // finds appropriate space and returns the pointer to the space
-void * find_space(size_t size)
+void *find_space(size_t size)
 {
     tcc_page_info_t * pageinfo = (tcc_page_info_t*)(g_map->ptr);
     tcc_pair_t * npair = (tcc_pair_t*)(pageinfo->entry);
@@ -191,7 +202,7 @@ void * find_space(size_t size)
 }
 
 // coalesce the memory space and free pages that don't need to be there
-void coalesce(void * ptr)
+void coalesce(void *ptr)
 {
     tcc_page_info_t * basepage = BASEADDR(ptr);
     basepage->buffer_count--;
