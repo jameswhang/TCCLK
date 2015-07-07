@@ -29,7 +29,16 @@ struct device
 	struct semaphore sem;
 } tcc_char_dev;
 
-int open(struct inode *inode, struct file *filp)
+struct file_operations fops = 
+{
+	read: read,
+	write: write,
+	open: open,
+	release: release
+};
+
+int
+open(struct inode *inode, struct file *filp)
 {
 	printk(KERN_INFO "Inside open \n");
 	if(down_interruptible(&tcc_char_dev.sem)) {
@@ -39,7 +48,8 @@ int open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-int release(struct inode *inode, struct file *filp)
+int
+release(struct inode *inode, struct file *filp)
 {
 	printk(KERN_INFO "Inside close\n");
 	printk(KERN_INFO "Releasing semaphore");
@@ -47,7 +57,8 @@ int release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-ssize_t read (struct file *filp, char *buff, size_t count, loff_t *offp)
+ssize_t
+read(struct file *filp, char *buff, size_t count, loff_t *offp)
 {
 	unsigned long ret;
 	printk(KERN_INFO "Inside read\n");
@@ -55,7 +66,8 @@ ssize_t read (struct file *filp, char *buff, size_t count, loff_t *offp)
 	return ret;
 }
 
-ssize_t write (struct file *filp, const char *buff, size_t count, loff_t *offp)
+ssize_t
+write(struct file *filp, const char *buff, size_t count, loff_t *offp)
 {
 	unsigned long ret;
 	printk(KERN_INFO "Inside write\n");
@@ -97,16 +109,8 @@ ssize_t write (struct file *filp, const char *buff, size_t count, loff_t *offp)
 	return 0;
 }
 
-struct file_operations fops = 
-{
-	read: read,
-	write: write,
-	open: open,
-	release: release
-};
-
-
-static int __init tcc_module_init(void)
+static int __init
+tcc_module_init(void)
 {
     int ret;
     printk(KERN_INFO "TCC Module Inited\n");
@@ -134,7 +138,8 @@ static int __init tcc_module_init(void)
     return 0;    // Non-zero return means that the module couldn't be loaded.
 }
 
-static void __exit tcc_module_deinit(void)
+static void __exit
+tcc_module_deinit(void)
 {
     printk(KERN_INFO "TCC Module Deinited\n");
     cdev_del(kernel_cdev);

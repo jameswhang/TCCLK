@@ -5,7 +5,8 @@
 
 // print_flags:
 // prints off the flag information
-void print_flags()
+void
+print_flags()
 {
     printf("Flags:\n");
     printf("\t-f\tRead from file [file_path]\n");
@@ -14,7 +15,8 @@ void print_flags()
 
 // wrong_usage:
 // prints off the correct usage and quits the program
-void wrong_usage()
+void
+wrong_usage()
 {
     printf("Usage: tcc_service flags parameter\n");
     printf("tcc_service -h for help\n");
@@ -23,7 +25,8 @@ void wrong_usage()
 
 // print_error_and_quit:
 // prints off the appropriate error message and quits
-void print_error_and_quit(char mode)
+void
+print_error_and_quit(char mode)
 {
     printf("tcc_service : ");
     switch(mode)
@@ -43,7 +46,8 @@ void print_error_and_quit(char mode)
 }
 
 // read_from_file
-int read_from_file(FILE * fd, char * buffer)
+int
+read_from_file(FILE * fd, char * buffer)
 {
     fgets(buffer, 1000, fd);
     return 1;
@@ -52,7 +56,9 @@ int read_from_file(FILE * fd, char * buffer)
 // check_flags
 // returns index of argv if the target flag is inside the flags given by the user
 // returns -1 if flag is not found
-int check_flags(int argc, char * argv[], char target_flag) {
+int
+check_flags(int argc, char * argv[], char target_flag) 
+{
     int i;
     for(i = 0; i < argc; i++) {
         if(argv[i][0] == '-' && argv[i][1] == target_flag)
@@ -63,7 +69,9 @@ int check_flags(int argc, char * argv[], char target_flag) {
 
 // get_user_code
 // dynamically reallocs the buffer if user puts in more than 1000 characters long code
-char * get_user_code_input(char * buf, int maxlen) {
+char*
+get_user_code_input(char * buf, int maxlen) 
+{
     int c = EOF;
     unsigned int i = 14;
     strcpy(buf, "int main() {\n");
@@ -79,7 +87,9 @@ char * get_user_code_input(char * buf, int maxlen) {
     return buf;
 }
 
-char * get_user_code_file(char * buf, FILE * fs, int maxlen) {
+char*
+get_user_code_file(char * buf, FILE * fs, int maxlen) 
+{
     int c = EOF;
     unsigned int i = 0; 
     while ((c = fgetc(fs)) != EOF) {
@@ -94,7 +104,8 @@ char * get_user_code_file(char * buf, FILE * fs, int maxlen) {
 }
 
 // main
-int main(int argc, char * argv[])
+int
+main(int argc, char* argv[])
 {
     int max_buf_len = 1000;
     int dev_fd;

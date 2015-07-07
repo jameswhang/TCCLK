@@ -8,10 +8,11 @@
 #include "tcc_page.h"
 
 // global variable to keep track of the map
-tcc_page_t * g_map = NULL;
-tcc_ptr_size_pair_t * g_ptr_list = NULL;
+tcc_page_t *g_map = NULL;
+tcc_ptr_size_pair_t *g_ptr_list = NULL;
 
-void * tcc_kmalloc(size_t size)
+void*
+tcc_kmalloc(size_t size)
 {
     if ((size + sizeof(tcc_page_t*)) > PAGESIZE) {
         return NULL;
@@ -26,18 +27,20 @@ void * tcc_kmalloc(size_t size)
         new_page(g_map);
     }
 
-    void * ret = find_space(size);
+    void *ret = find_space(size);
     tcc_page_info_t * basepage = BASEADDR(ret);
     basepage->buffer_count++;
     return ret;
 }
 
-void * tcc_krealloc(void *p, size_t n)
+void*
+tcc_krealloc(void *p, size_t n)
 {
     return krealloc(p, n, GFP_ATOMIC);
 }
 
-void tcc_free(void *p)
+void
+tcc_free(void *p)
 {
     size_t n = find_size_pair(p); // jwhang: TODO, implement this.
     if (n < 0) { 
@@ -50,7 +53,8 @@ void tcc_free(void *p)
     }
 }
 
-void new_page(tcc_page_t *page)
+void
+new_page(tcc_page_t *page)
 {
     *((tcc_page_t **)page->ptr) = page;
     tcc_page_info_t *pageinfo = (tcc_page_info_t*)(page->ptr);
@@ -64,7 +68,8 @@ void new_page(tcc_page_t *page)
 // find_size_pair
 // currently there is no way of keeping track of how much memory is allocated in each pointer. Need this in order to free them later.
 // May need an extra struct to keep track of this pair
-size_t find_size_pair(void *p)
+size_t
+find_size_pair(void *p)
 {
     if (g_ptr_list == NULL) {
         return -1; //err
@@ -77,7 +82,8 @@ size_t find_size_pair(void *p)
 }
 
 // add_size_pair
-void add_size_pair(void *p, size_t size)
+void
+add_size_pair(void *p, size_t size)
 {
     if (g_ptr_list == NULL) {
         g_ptr_list = malloc(tcc_ptr_size_pair_t);
@@ -97,7 +103,8 @@ void add_size_pair(void *p, size_t size)
 
 // remove_size_pair
 // removes the size pair node from the list 
-int remove_size_pair(void *p, size_t size)
+int
+remove_size_pair(void *p, size_t size)
 {
     tcc_ptr_size_pair_t *curr_ptr = g_ptr_list;
     if (g_ptr_list == NULL ) { // something went wrong
@@ -115,7 +122,8 @@ int remove_size_pair(void *p, size_t size)
 }
 
 // Takes in a pointer to base of block and size, and adds a node to the linked list of a pair
-void add_pair(void * base, size_t size) 
+void
+add_pair(void * base, size_t size) 
 {
   tcc_page_info_t * pageinfo = (tcc_page_info_t*)(g_rmap->ptr);
   void * entry = (tcc_pair_t*)(pageinfo->entry);
@@ -151,11 +159,12 @@ void add_pair(void * base, size_t size)
 
 
 // takes a pointer to the base that needs to be freed and removes its pair from the linked list
-void remove_pair(void * base) 
+void
+remove_pair(void* base) 
 {
-    void * ptr = (tcc_pair_t*)base;
-    void * ptr_prev = ((tcc_pair_t*)ptr)->prevblock;
-    void * ptr_next = ((tcc_pair_t*)ptr)->nextblock;
+    void* ptr = (tcc_pair_t*)base;
+    void* ptr_prev = ((tcc_pair_t*)ptr)->prevblock;
+    void* ptr_next = ((tcc_pair_t*)ptr)->nextblock;
 
     if (ptr_prev != NULL && ptr_next != NULL) {
         ptr_prev->nextblock = ptr_next;
@@ -163,13 +172,13 @@ void remove_pair(void * base)
         return;
     } else if (ptr_prev == NULL) {
         ptr_next->prevblock = NULL;
-        tcc_page_info_t * pageinfo = (tcc_page_info_t*)(g_map->ptr);
+        tcc_page_info_t* pageinfo = (tcc_page_info_t*)(g_map->ptr);
         pageinfo->entry = ptr_next;
         return;
     } else if (ptr_next == NULL) {
         ptr_prev->next = NULL;
     } else {
-        tcc_page_info_t * pageinfo = (tcc_page_info_t*)(g_map->ptr);
+        tcc_page_info_t* pageinfo = (tcc_page_info_t*)(g_map->ptr);
         pageinfo->entry = NULL;
         g_map = NULL;
         return;
@@ -177,10 +186,11 @@ void remove_pair(void * base)
 }
 
 // finds appropriate space and returns the pointer to the space
-void *find_space(size_t size)
+void*
+find_space(size_t size)
 {
-    tcc_page_info_t * pageinfo = (tcc_page_info_t*)(g_map->ptr);
-    tcc_pair_t * npair = (tcc_pair_t*)(pageinfo->entry);
+    tcc_page_info_t* pageinfo = (tcc_page_info_t*)(g_map->ptr);
+    tcc_pair_t* npair = (tcc_pair_t*)(pageinfo->entry);
     while (npair != NULL) {
         if (pair->size < size) {
             npair = (tcc_pair_t*)(npair->nextblock);
@@ -195,20 +205,21 @@ void *find_space(size_t size)
         }
     }
     // no more space left. allocate new page and try again.
-    tcc_page_t * newpage = get_page();
+    tcc_page_t* newpage = get_page();
     new_page(newpage);
     pageinfo->page_count++;
     return find_space(size);
 }
 
 // coalesce the memory space and free pages that don't need to be there
-void coalesce(void *ptr)
+void
+coalesce(void* ptr)
 {
-    tcc_page_info_t * basepage = BASEADDR(ptr);
+    tcc_page_info_t* basepage = BASEADDR(ptr);
     basepage->buffer_count--;
 
-    tcc_page_info_t * firstpage = (tcc_page_info_t*)(g_map->ptr);
-    tcc_page_info_t * lastpage;
+    tcc_page_info_t* firstpage = (tcc_page_info_t*)(g_map->ptr);
+    tcc_page_info_t* lastpage;
 
     int end = firstpage->page_count;
     int iteratve = 1
