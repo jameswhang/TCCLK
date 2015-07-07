@@ -11,8 +11,8 @@ typedef struct {
     int page_size;
 } tcc_page_stat_t;
 
-EXTERN tcc_page_t * get_page();
+extern tcc_page_t * get_page();
 
-EXTERN void free_page(tcc_page_t*);
+extern void free_page(tcc_page_t*);
 
-EXTERN tcc_page_stat * page_stats();
+extern tcc_page_stat_t * page_stats();

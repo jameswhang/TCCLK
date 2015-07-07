@@ -1,4 +1,6 @@
 //#include <unistd.h>
+#include "tcc_page.h"
+#include <stddef.h>
 
 /*** pair_t *****/
 /* Used to keep the pair <base, size> resource map entries. Has a linked list form */
