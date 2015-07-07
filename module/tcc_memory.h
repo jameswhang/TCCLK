@@ -1,4 +1,4 @@
-#include <unistd.h>
+//#include <unistd.h>
 
 /*** pair_t *****/
 /* Used to keep the pair <base, size> resource map entries. Has a linked list form */
@@ -15,7 +15,7 @@ typedef struct tcc_page_info
 {
     int buffer_count;
     int page_count;
-    pair_t * entry;
+    tcc_pair_t * entry;
     void * page;
 } tcc_page_info_t;
 
@@ -25,10 +25,12 @@ typedef struct tcc_ptr_size_pair
 {
     size_t size;
     void * ptr;
-    ptr_size_pair * next;
+    struct tcc_ptr_size_pair * next;
 } tcc_ptr_size_pair_t;
 
-size_t PAGESIZE = getpagesize();  // kinda a bad thing to define this globally.. should probably figure out a way to do this with MACRO but still adapt to different machines paging settings.
+//size_t PAGESIZE = getpagesize();  // kinda a bad thing to define this globally.. should probably figure out a way to do this with MACRO but still adapt to different machines paging settings.
+
+size_t PAGESIZE = 4096;
 
 /*** Function prototypes ***/
 void * tcc_kmalloc(size_t n);

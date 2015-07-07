@@ -1,18 +1,6 @@
-#include <linux/module.h>    // included for all kernel modules
-#include <linux/kernel.h>    // included for KERN_INFO
-#include <linux/init.h>      // included for __init and __exit macros
-#include <linux/slab.h>
-//#include <linux/vmalloc.h>
-#include <linux/fs.h>
-#include <asm/uaccess.h>
-#include <linux/semaphore.h>
-#include <linux/cdev.h>
-
-#include <asm/uaccess.h>
-#include <linux/cdev.h>
-
 #include "../libtcc.h"
 #include "tcc_memory.h"
+#include "tcc_module.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Northwestern University");
