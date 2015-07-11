@@ -2,7 +2,6 @@
 #include <linux/kernel.h>    // included for KERN_INFO
 #include <linux/init.h>      // included for __init and __exit macros
 #include <linux/slab.h>
-//#include <linux/vmalloc.h>
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 #include <linux/semaphore.h>

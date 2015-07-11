@@ -28,21 +28,25 @@ tcc_kmalloc(size_t size)
     }
 
     void *ret = find_space(size);
+    add_size_pair(ret, size);
     tcc_page_info_t * basepage = BASEADDR(ret);
     basepage->buffer_count++;
     return ret;
 }
 
+/* 7/10/2015
+ * Wrong interface - commenting this out for now 
 void*
-tcc_krealloc(void *p, size_t n)
+tcc_krealloc(void *p, size_t n) 
 {
     return krealloc(p, n, GFP_ATOMIC);
 }
+*/
 
 void
 tcc_free(void *p)
 {
-    size_t n = find_size_pair(p); // jwhang: TODO, implement this.
+    size_t n = find_size_pair(p);
     if (n < 0) { 
         printk("TCC: ERROR WHEN FREEING POINTER AT ADDRESS %p\n", p);
         return;

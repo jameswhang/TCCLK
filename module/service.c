@@ -49,7 +49,7 @@ print_error_and_quit(char mode)
 int
 read_from_file(FILE * fd, char * buffer)
 {
-    fgets(buffer, 1000, fd);
+    fgets(buffer, 1000, fd); // TODO: fix this hardcoded value
     return 1;
 }
 
